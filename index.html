@@ -1080,74 +1080,110 @@ var CFG=JSON.parse(localStorage.getItem('hr_cfg')||'null');
 
 // ═══ SYNC (Firebase) ═══
 var SYNC={
-  db:null,
+  url:'https://sejatuvgccdgzcsgwxjm.supabase.co',
+  key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlamF0dXZnY2NkZ3pjc2d3eGptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMTkzNzAsImV4cCI6MjA5MjY5NTM3MH0.ZydtR-DZNBu2Q6a_mYtOCkOiJQL7O9fLB7V0rhitBYU',
   code:localStorage.getItem('hr_sync_code')||'',
   on:false,
-  _push:null,
+  _interval:null,
+  _lastTs:0,
+
   init:function(code){
-    if(!code){this.code='';localStorage.removeItem('hr_sync_code');this.on=false;return;}
-    // Firebase project — free Realtime DB
-    var cfg={apiKey:"AIzaSyD_placeholder",databaseURL:"https://hr-marmores-default-rtdb.firebaseio.com"};
-    try{
-      if(typeof firebase==='undefined'){
-        // Load Firebase on demand
-        var fb1=document.createElement('script');
-        fb1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
-        fb1.onload=function(){
-          var fb2=document.createElement('script');
-          fb2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
-          fb2.onload=function(){SYNC.init(SYNC.code);};
-          document.head.appendChild(fb2);
-        };
-        document.head.appendChild(fb1);
-        toast('Carregando sincronização...');
-        return;
-      }
-      if(!firebase.apps.length)firebase.initializeApp(cfg);
-      else firebase.app();
-      this.db=firebase.database();
-      this.code=code;
-      localStorage.setItem('hr_sync_code',code);
-      this.on=true;
-      this._listen();
-      toast('✓ Sincronização ativa — código: '+code);
-    }catch(e){toast('Sync: configure o Firebase (ver instruções)');}
+    if(!code){this.stop();return;}
+    this.code=code.trim().replace(/\s+/g,'_').toLowerCase();
+    localStorage.setItem('hr_sync_code',this.code);
+    this.on=true;
+    this.push();
+    this._startPoll();
+    toast('✓ Sincronização ativa! Código: '+this.code);
+    if(typeof buildCfg==='function')buildCfg();
   },
-  _listen:function(){
-    if(!this.db||!this.code)return;
+
+  _req:function(method,body){
     var self=this;
-    this.db.ref('hr/'+this.code).on('value',function(snap){
-      var d=snap.val();
-      if(!d||!d._ts)return;
+    var endpoint=self.url+'/rest/v1/hr_sync?codigo=eq.'+encodeURIComponent(self.code);
+    return fetch(endpoint,{
+      method:method,
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':self.key,
+        'Authorization':'Bearer '+self.key,
+        'Prefer': method==='POST'?'resolution=merge-duplicates':''
+      },
+      body:body?JSON.stringify(body):undefined
+    }).then(function(r){return r.ok?r.json():Promise.reject(r.status);});
+  },
+
+  push:function(){
+    if(!this.on||!this.code)return;
+    var ts=Date.now();
+    this._lastTs=ts;
+    localStorage.setItem('hr_sync_ts',ts);
+    var payload={
+      codigo:this.code,
+      dados:JSON.stringify({cfg:CFG,q:DB.q,j:DB.j,t:DB.t}),
+      ts:ts
+    };
+    // Upsert
+    fetch(this.url+'/rest/v1/hr_sync',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':this.key,
+        'Authorization':'Bearer '+this.key,
+        'Prefer':'resolution=merge-duplicates'
+      },
+      body:JSON.stringify(payload)
+    }).catch(function(){});
+  },
+
+  _pull:function(){
+    if(!this.on||!this.code)return;
+    var self=this;
+    var endpoint=self.url+'/rest/v1/hr_sync?codigo=eq.'+encodeURIComponent(self.code)+'&select=dados,ts';
+    fetch(endpoint,{
+      headers:{'apikey':self.key,'Authorization':'Bearer '+self.key}
+    })
+    .then(function(r){return r.json();})
+    .then(function(rows){
+      if(!rows||!rows.length)return;
+      var row=rows[0];
+      var remoteTs=+row.ts||0;
       var localTs=+localStorage.getItem('hr_sync_ts')||0;
-      if(d._ts>localTs+2000){
+      if(remoteTs>localTs+3000){
         // Remote is newer — pull
+        var d=JSON.parse(row.dados);
         if(d.cfg){CFG=d.cfg;localStorage.setItem('hr_cfg',JSON.stringify(CFG));}
         if(d.q)DB.q=d.q;
         if(d.j)DB.j=d.j;
         if(d.t)DB.t=d.t;
         DB.sv();
-        localStorage.setItem('hr_sync_ts',d._ts);
-        buildMat();buildSV();buildCatalog();buildCubaList();renderAg();renderFin();updEmp();
+        localStorage.setItem('hr_sync_ts',remoteTs);
+        buildMat();buildCatalog();buildCubaList();renderAg();renderFin();updEmp();renderOrc();
         toast('↓ Dados sincronizados!');
       }
-    });
+    })
+    .catch(function(){});
   },
-  push:function(){
-    if(!this.db||!this.code)return;
-    var ts=Date.now();
-    localStorage.setItem('hr_sync_ts',ts);
-    this.db.ref('hr/'+this.code).set({cfg:CFG,q:DB.q,j:DB.j,t:DB.t,_ts:ts});
+
+  _startPoll:function(){
+    if(this._interval)clearInterval(this._interval);
+    var self=this;
+    // Poll every 10 seconds
+    this._interval=setInterval(function(){self._pull();},10000);
   },
+
   stop:function(){
-    if(this.db&&this.code)this.db.ref('hr/'+this.code).off();
-    this.on=false;this.code='';
+    this.on=false;
+    this.code='';
+    if(this._interval){clearInterval(this._interval);this._interval=null;}
     localStorage.removeItem('hr_sync_code');
     localStorage.removeItem('hr_sync_ts');
     toast('Sincronização desativada');
+    if(typeof buildCfg==='function')buildCfg();
   }
 };
 
+// ═══ DEFAULTS ═══
 // ═══ DEFAULTS ═══
 var DEF_STONES=[
   {id:'andorinha',nm:'Cinza Andorinha/Corumbá',cat:'Granito Cinza',fin:'Polida',pr:320,tx:'tx-andorinha',photo:'',desc:'Granito nacional cinza com cristais brancos. Alta dureza e resistência — não risca, não mancha com facilidade e suporta calor. Excelente custo-benefício para cozinhas e bancadas de uso intenso.'},
@@ -1404,6 +1440,15 @@ window.aplicarEstiloNi=function(){
     });
   }
   window.addEventListener('resize',setLayout);
+  // Auto-start sync if previously configured
+  if(SYNC.code){
+    setTimeout(function(){
+      SYNC.on=true;
+      SYNC._startPoll();
+      // Push current data
+      setTimeout(function(){SYNC.push();},2000);
+    },3000);
+  }
   window.addEventListener('orientationchange',function(){
     // Android muda dimensões de forma assíncrona — tentar várias vezes até estabilizar
     var tries=0;
@@ -3477,7 +3522,7 @@ function buildCfg(){
     // Sincronização
     h+='<div class="cfgsec"><div class="cfghd">📡 Sincronização Celular ↔ Tablet</div>';
     h+='<div style="padding:13px;">';
-    h+='<div style="font-size:.76rem;color:var(--t2);line-height:1.65;margin-bottom:12px;">Use o mesmo <b>código</b> em todos os dispositivos para sincronizar dados em tempo real.</div>';
+    h+='<div style="font-size:.76rem;color:var(--t2);line-height:1.65;margin-bottom:12px;">'     +'Sincroniza automaticamente entre <b>celular, tablet e PC</b>. '     +'Use o mesmo código em todos os dispositivos.</div>';    h+='<div style="background:var(--s3);border:1px solid var(--bd2);border-radius:10px;padding:10px 13px;margin-bottom:12px;font-size:.7rem;color:var(--t3);line-height:1.7;">';    h+='⚡ Após ativar, qualquer alteração salva automaticamente na nuvem. '     +'Abre em outro dispositivo com o mesmo código e já aparece atualizado.</div>';
     var syncAtivo=SYNC.on||!!localStorage.getItem('hr_sync_code');
     if(syncAtivo){
       h+='<div style="background:#0a1f12;border:1px solid var(--grn);border-radius:9px;padding:11px 13px;margin-bottom:10px;display:flex;align-items:center;gap:8px;">';
@@ -3497,10 +3542,10 @@ function buildCfg(){
     h+='<div class="cfgsec"><div class="cfghd">💾 Backup de Dados</div>';
     h+='<div style="padding:12px 13px;">';
     h+='<div style="font-size:.75rem;color:var(--t2);margin-bottom:12px;line-height:1.7;">Salve pedras, cubas, orçamentos e configurações em arquivo de backup.</div>';
-    h+='<button class="btn btn-g" style="font-size:.8rem;padding:12px;margin-bottom:8px;width:100%;" onclick="baixarBackup()">📥 Baixar Backup Completo</button>';
+    h+='<button class="btn btn-g" style="font-size:.8rem;padding:14px;margin-bottom:10px;width:100%;" onclick="baixarBackup()">📤 Exportar / Compartilhar Backup</button>';
     h+='<div style="border-top:1px solid var(--bd);padding-top:12px;margin-top:4px;">';
-    h+='<button class="btn btn-o" style="font-size:.8rem;padding:12px;width:100%;" onclick="document.getElementById(\'fileBackup\').click()">📂 Carregar Backup</button>';
-    h+='<input type="file" id="fileBackup" accept=".json" style="display:none;" onchange="carregarBackup(this)">';
+    h+='<div style="font-size:.72rem;color:var(--t3);line-height:1.6;margin-bottom:10px;">Para restaurar: toque no botão abaixo e selecione o arquivo .json do backup salvo.</div>';
+    h+='<label style="display:block;width:100%;padding:14px;background:var(--s2);border:1px solid var(--gold3);border-radius:11px;text-align:center;font-family:Outfit,sans-serif;font-size:.8rem;color:var(--gold2);font-weight:700;cursor:pointer;">📂 Selecionar arquivo de Backup<input type="file" accept=".json,application/json" style="display:none;" onchange="carregarBackup(this)"></label>';
     h+='</div></div></div>';
 
     // Perigo
@@ -4018,30 +4063,61 @@ function _numPorExtenso(n){
 // ═══ BACKUP ═══
 function baixarBackup(){
   var dados={cfg:CFG,q:DB.q,j:DB.j,t:DB.t};
-  var blob=new Blob([JSON.stringify(dados)],{type:'application/json;charset=utf-8'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
+  var json=JSON.stringify(dados);
   var dt=new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  a.href=url;a.download='HR_Backup_'+dt+'.json';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(function(){URL.revokeObjectURL(url);},8000);
-  toast('📥 Backup salvo nos Downloads!');
+  var fname='HR_Backup_'+dt+'.json';
+  try{
+    // Try native share first (mobile)
+    var blob=new Blob([json],{type:'application/json'});
+    if(navigator.share){
+      var file=new File([blob],fname,{type:'application/json'});
+      navigator.share({files:[file],title:'Backup HR Mármores'})
+        .then(function(){toast('✓ Backup compartilhado!');})
+        .catch(function(){_baixarViaLink(json,fname);});
+      return;
+    }
+    _baixarViaLink(json,fname);
+  }catch(e){_baixarViaLink(json,fname);}
+}
+function _baixarViaLink(json,fname){
+  // Fallback: data URI download
+  var uri='data:application/json;charset=utf-8,'+encodeURIComponent(json);
+  var a=document.createElement('a');
+  a.href=uri;a.download=fname;a.target='_blank';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);},1000);
+  toast('📥 Backup salvo! Verifique seus Downloads.');
 }
 
 function carregarBackup(input){
-  var file=input.files[0];if(!file)return;
+  var file=input.files&&input.files[0];
+  if(!file){toast('Selecione um arquivo .json');return;}
+  if(!file.name.endsWith('.json')&&file.type!=='application/json'){
+    toast('❌ Selecione um arquivo .json de backup');return;
+  }
   var reader=new FileReader();
   reader.onload=function(e){
     try{
       var d=JSON.parse(e.target.result);
-      if(d.cfg){CFG=d.cfg;localStorage.setItem('hr_cfg',JSON.stringify(CFG));}
-      if(d.q)DB.q=d.q;if(d.j)DB.j=d.j;if(d.t)DB.t=d.t;
+      if(!d.cfg&&!d.q){toast('❌ Arquivo não é um backup válido');return;}
+      if(d.cfg){
+        CFG=d.cfg;
+        localStorage.setItem('hr_cfg',JSON.stringify(CFG));
+      }
+      if(d.q)DB.q=d.q;
+      if(d.j)DB.j=d.j;
+      if(d.t)DB.t=d.t;
       DB.sv();
       toast('✓ Backup restaurado! Recarregando...');
-      setTimeout(function(){location.reload();},900);
-    }catch(err){toast('❌ Arquivo inválido');}
+      setTimeout(function(){location.reload();},1200);
+    }catch(err){
+      toast('❌ Erro ao ler arquivo: '+err.message);
+    }
   };
+  reader.onerror=function(){toast('❌ Erro ao abrir arquivo');};
   reader.readAsText(file);
+  // Reset input so same file can be selected again
+  input.value='';
 }
 
 
