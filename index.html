@@ -27,6 +27,19 @@ html{height:100%;height:-webkit-fill-available;}body{height:100%;height:-webkit-
 .svblk{display:block;}
 @media(min-width:700px){
   .pecaRow{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;align-items:end;}
+
+/* Acabamentos por peça */
+.peca-acb{margin-top:10px;border-top:1px solid var(--bd);padding-top:10px;}
+.peca-acb-hd{font-size:.52rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold3);font-weight:700;margin-bottom:8px;opacity:.8;}
+.peca-acb-list{display:flex;flex-direction:column;gap:4px;}
+.peca-acb-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:var(--s3);transition:background .12s;}
+.peca-acb-row:has(.paca-chk.on){background:linear-gradient(90deg,#160d00,#0e0900);}
+.paca-chk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--bd2);display:grid;place-items:center;font-size:.6rem;font-weight:900;color:transparent;cursor:pointer;flex-shrink:0;transition:all .15s;}
+.paca-chk.on{background:linear-gradient(135deg,var(--gold),var(--gold3));border-color:var(--gold);color:#1a0e00;box-shadow:0 2px 6px rgba(201,168,76,.3);}
+.paca-lbl{font-size:.75rem;color:var(--t2);flex:1;cursor:pointer;}
+.paca-lbl.on{color:var(--gold2);font-weight:600;}
+.paca-pr{font-size:.65rem;color:var(--t4);}
+.paca-inp{width:68px;background:var(--s1);border:1px solid var(--gold3);border-radius:7px;padding:5px 7px;color:var(--tx);font-family:Outfit,sans-serif;font-size:.8rem;outline:none;text-align:center;}
   .svblk{display:grid;grid-template-columns:1fr 1fr;gap:0;}
 
 /* ── NEW SERVICE LAYOUT ── */
@@ -342,6 +355,8 @@ textarea{resize:none;}
 .btn-grn{background:#0a1f12;color:var(--grn);border:1px solid #1a4030;}
 .btn-red{background:#1f0a0a;color:var(--red);border:1px solid #4a1a1a;}
 .btn-contrato{background:linear-gradient(135deg,#0a1520,#0d2035);color:#60a0e0;border:1px solid #1a4070;font-family:Outfit,sans-serif;font-size:.78rem;font-weight:600;padding:9px 13px;border-radius:10px;cursor:pointer;}
+.contr-pg-btn{background:var(--s2);border:1.5px solid var(--bd2);border-radius:10px;padding:10px 8px;color:var(--t2);font-family:Outfit,sans-serif;font-size:.72rem;cursor:pointer;text-align:center;line-height:1.4;transition:all .15s;}
+.contr-pg-btn.on{background:linear-gradient(135deg,#0a1520,#0d2035);border-color:#1a4070;color:#60a0e0;font-weight:700;}
 .btn-sm{padding:6px 11px;width:auto;font-size:.7rem;border-radius:8px;}
 .row{display:flex;gap:7px;}
 .mt{margin-top:9px;}.mt6{margin-top:6px;}
@@ -1170,6 +1185,101 @@ function openApp(pg){
   </div>
 </div>
 
+<!-- MODAL CONTRATO CONFIG -->
+<div class="ov" id="contrMd" onclick="if(event.target===this)closeAll()">
+  <div class="modal" style="max-width:500px;padding:0;overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#0a1520,#0d2035);padding:18px 20px;border-bottom:1px solid #1a4070;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:#60a0e0;font-weight:700;">📜 Configurar Contrato</div>
+      <div style="font-size:.68rem;color:rgba(96,160,224,.5);margin-top:2px;">Defina os termos antes de gerar</div>
+    </div>
+    <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px;">
+
+      <!-- Forma de pagamento -->
+      <div>
+        <div style="font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:#60a0e0;font-weight:700;margin-bottom:8px;">Forma de Pagamento</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="contrPgBtns">
+          <button class="contr-pg-btn on" data-pg="50_50" onclick="selContrPg('50_50')">50% entrada<br>50% entrega</button>
+          <button class="contr-pg-btn" data-pg="vista" onclick="selContrPg('vista')">À vista</button>
+          <button class="contr-pg-btn" data-pg="30_70" onclick="selContrPg('30_70')">30% entrada<br>70% entrega</button>
+          <button class="contr-pg-btn" data-pg="personalizado" onclick="selContrPg('personalizado')">Personalizado</button>
+        </div>
+        <div id="contrPgCustom" style="display:none;margin-top:10px;background:var(--s3);border-radius:10px;padding:12px;gap:8px;display:none;flex-direction:column;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div style="font-size:.6rem;color:var(--t3);margin-bottom:4px;">Entrada (%)</div>
+            <input type="number" id="contrEntPct" min="0" max="100" value="50" style="width:100%;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:8px;color:var(--tx);font-family:Outfit;font-size:.85rem;outline:none;"></div>
+            <div><div style="font-size:.6rem;color:var(--t3);margin-bottom:4px;">Entrega (%)</div>
+            <input type="number" id="contrEntgPct" min="0" max="100" value="50" style="width:100%;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:8px;color:var(--tx);font-family:Outfit;font-size:.85rem;outline:none;"></div>
+          </div>
+          <div style="font-size:.68rem;color:var(--t3);">Pode adicionar mais parcelas no campo abaixo</div>
+        </div>
+      </div>
+
+      <!-- Parcelas -->
+      <div>
+        <div style="font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:#60a0e0;font-weight:700;margin-bottom:8px;">Parcelamento no Cartão</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="contrParc" style="flex:1;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:9px;color:var(--tx);font-family:Outfit;font-size:.82rem;outline:none;">
+            <option value="0">Sem parcelamento</option>
+            <option value="2">2× no cartão</option>
+            <option value="3">3× no cartão</option>
+            <option value="4">4× no cartão</option>
+            <option value="5">5× no cartão</option>
+            <option value="6">6× no cartão</option>
+            <option value="8" selected>8× no cartão</option>
+            <option value="10">10× no cartão</option>
+            <option value="12">12× no cartão</option>
+          </select>
+          <div>
+            <div style="font-size:.58rem;color:var(--t3);margin-bottom:3px;">Taxa (%)</div>
+            <input type="number" id="contrTaxa" value="12" min="0" max="50" step="0.5" style="width:70px;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:8px;color:var(--tx);font-family:Outfit;font-size:.82rem;outline:none;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Prazo entrega -->
+      <div>
+        <div style="font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:#60a0e0;font-weight:700;margin-bottom:8px;">Prazo de Entrega</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <div style="font-size:.6rem;color:var(--t3);margin-bottom:4px;">Dias úteis</div>
+            <input type="number" id="contrPrazo" value="15" min="1" style="width:100%;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:9px;color:var(--tx);font-family:Outfit;font-size:.85rem;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:.6rem;color:var(--t3);margin-bottom:4px;">Validade orçamento</div>
+            <select id="contrValid" style="width:100%;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:9px;color:var(--tx);font-family:Outfit;font-size:.82rem;outline:none;">
+              <option value="7">7 dias</option>
+              <option value="15">15 dias</option>
+              <option value="30">30 dias</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Observações do contrato -->
+      <div>
+        <div style="font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:#60a0e0;font-weight:700;margin-bottom:8px;">Observações no Contrato</div>
+        <textarea id="contrObs" rows="2" placeholder="Ex: Instalação inclusa, retirada do lavatório antigo pelo cliente..." style="width:100%;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:9px;color:var(--tx);font-family:Outfit;font-size:.8rem;outline:none;resize:vertical;"></textarea>
+      </div>
+
+      <!-- Registrar nas finanças -->
+      <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="contrFinChk" class="svchk on" onclick="this.classList.toggle('on')" style="cursor:pointer;">✓</div>
+          <div>
+            <div style="font-size:.8rem;color:var(--gold2);font-weight:600;">Registrar entrada nas Finanças</div>
+            <div style="font-size:.65rem;color:var(--t3);margin-top:2px;">O valor de entrada será lançado automaticamente como receita pendente</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn" onclick="closeAll()" style="flex:1;padding:13px;">Cancelar</button>
+        <button class="btn btn-contrato" onclick="confirmarContrato()" style="flex:2;padding:13px;font-size:.85rem;">📜 Gerar Contrato</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1563,13 +1673,22 @@ document.addEventListener('input',function(e){
   var el=e.target;
   // calcSV via data attr
   if(el.dataset.calcsvAmb&&el.dataset.calcsvK){
-    calcSV(+el.dataset.calcsvAmb,el.dataset.calcsvK);
-    return;
+    calcSV(+el.dataset.calcsvAmb,el.dataset.calcsvK);return;
   }
-  // calc-amb/k via data attr
   if(el.dataset.calcAmb&&el.dataset.calcK){
-    calcSV(+el.dataset.calcAmb,el.dataset.calcK);
-    return;
+    calcSV(+el.dataset.calcAmb,el.dataset.calcK);return;
+  }
+  // Acabamento ml por peça
+  if(el.dataset.pacaMl){
+    var ambId=+el.dataset.amb,pcId=+el.dataset.pc,ak=el.dataset.pacaMl;
+    var amb=ambientes.find(function(a){return a.id===ambId;});
+    if(!amb)return;
+    var pc=amb.pecas.find(function(p){return p.id===pcId;});
+    if(!pc)return;
+    if(!pc.acb)pc.acb={};
+    if(!pc.acb[ak])pc.acb[ak]={};
+    pc.acb[ak].ml=+el.value||0;
+    DB.sv();
   }
 });
   // Auto-start sync if previously configured
@@ -1721,6 +1840,17 @@ function dispatch(e){
   el=e.target.closest('[data-deljob]');if(el){delJob(+el.dataset.deljob);return;}
   // Peca remove
   el=e.target.closest('[data-rmpc]');if(el){remPeca(+el.dataset.rmpc);return;}
+  // Toggle acabamento da peça
+  el=e.target.closest('[data-paca]');if(el&&!el.classList.contains('paca-inp')){
+    var ambId3=+el.dataset.amb,pcId3=+el.dataset.pc,ak3=el.dataset.paca;
+    togPecaAcb(ambId3,pcId3,ak3);return;
+  }
+  // Label click
+  el=e.target.closest('.paca-lbl');if(el){
+    var row=el.closest('.peca-acb-row');
+    var chk=row&&row.querySelector('[data-paca]');
+    if(chk){var ambId3=+chk.dataset.amb,pcId3=+chk.dataset.pc,ak3=chk.dataset.paca;togPecaAcb(ambId3,pcId3,ak3);}return;
+  }
   // Edit transaction
   el=e.target.closest('[data-edittr]');if(el){openEditTr(+el.dataset.edittr);return;}
   // Photo pick
@@ -2110,6 +2240,32 @@ function renderAmbientes(){
       h+='<div class="r2"><div class="f"><label>Comprimento (cm)</label><input id="pw-'+pc.id+'" placeholder="300" type="number" style="background:var(--s3);" value="'+(pc.w||'')+'" oninput="updPcAmb('+amb.id+','+pc.id+',\'w\',+this.value)"></div>';
       h+='<div class="f"><label>Largura (cm)</label><input id="ph-'+pc.id+'" placeholder="60" type="number" style="background:var(--s3);" value="'+(pc.h||'')+'" oninput="updPcAmb('+amb.id+','+pc.id+',\'h\',+this.value)"></div></div>';
       h+='<div style="max-width:130px;"><div class="f"><label>Quantidade</label><input id="pq-'+pc.id+'" type="number" style="background:var(--s3);" value="'+(pc.q||1)+'" oninput="updPcAmb('+amb.id+','+pc.id+',\'q\',+this.value||1)"></div></div>';
+      // Acabamentos da peça
+      var acPeca=pc.acb||{};
+      var acOpts=[
+        {k:'borda_reta',l:'Borda Reta'},
+        {k:'borda_45',l:'Borda 45°'},
+        {k:'borda_boleada',l:'Borda Boleada'},
+        {k:'borda_chf',l:'Borda Chanfrada'},
+        {k:'cant',l:'Cantoneira'},
+        {k:'rodape',l:'Rodapé'}
+      ];
+      h+='<div class="peca-acb">';
+      h+='<div class="peca-acb-hd">Acabamentos desta peça</div>';
+      h+='<div class="peca-acb-list">';
+      acOpts.forEach(function(ao){
+        var isOn=!!acPeca[ao.k];
+        var ml=isOn?(acPeca[ao.k].ml||0):'';
+        h+='<div class="peca-acb-row">';
+        h+='<div class="paca-chk'+(isOn?' on':'')+'" data-paca="'+ao.k+'" data-pc="'+pc.id+'" data-amb="'+amb.id+'">'+(isOn?'✓':'')+'</div>';
+        h+='<span class="paca-lbl'+(isOn?' on':'')+'">'+ao.l+'</span>';
+        h+='<span class="paca-pr">R$ '+getPr(ao.k)+'/ml</span>';
+        if(isOn){
+          h+='<input type="number" class="paca-inp" placeholder="ml" step="0.01" min="0" value="'+ml+'" data-paca-ml="'+ao.k+'" data-pc="'+pc.id+'" data-amb="'+amb.id+'">';
+        }
+        h+='</div>';
+      });
+      h+='</div></div>';
       h+='</div>';
     });
     h+='</div>';
@@ -2427,13 +2583,28 @@ function calcular(){
     var g=SV_DEFS[tipo]||SV_DEFS.Cozinha;
     var m2=0,acT=0,acL=[],acN=[],sfPcs=[],pds=[];
 
-    // Peças
+    // Peças + acabamentos por peça
     amb.pecas.forEach(function(p){
       if(p.w&&p.h){
         var a=(p.w/100)*(p.h/100)*(p.q||1);
         m2+=a;
         pds.push({desc:p.desc||'Peça',w:p.w,h:p.h,q:p.q||1,m2:a});
         allPds.push({desc:(tipo+': '+(p.desc||'Peça')),w:p.w,h:p.h,q:p.q||1,m2:a});
+      }
+      // Acabamentos da peça
+      if(p.acb){
+        Object.keys(p.acb).forEach(function(ak){
+          var mlAcb=p.acb[ak].ml||0;
+          if(mlAcb>0){
+            var moAcb=mlAcb*getPr(ak);
+            acT+=moAcb;
+            var acbLabel=['borda_reta','borda_45','borda_boleada','borda_chf','cant','rodape'];
+            var acbNames={borda_reta:'Borda Reta',borda_45:'Borda 45°',borda_boleada:'Borda Boleada',borda_chf:'Borda Chanfrada',cant:'Cantoneira',rodape:'Rodapé'};
+            var nm=(acbNames[ak]||ak)+' '+(p.desc?'('+p.desc+')':'');
+            acL.push({l:nm+' — '+mlAcb+'ml',v:moAcb});
+            acN.push(nm);
+          }
+        });
       }
     });
 
@@ -3245,6 +3416,17 @@ function buildAcList(){
   h+='</div>';
   var el=document.getElementById('acListWrap');
   if(el)el.innerHTML=h;
+}
+
+function togPecaAcb(ambId,pcId,ak){
+  var amb=ambientes.find(function(a){return a.id===ambId;});
+  if(!amb)return;
+  var pc=amb.pecas.find(function(p){return p.id===pcId;});
+  if(!pc)return;
+  if(!pc.acb)pc.acb={};
+  if(pc.acb[ak]){delete pc.acb[ak];}
+  else{pc.acb[ak]={ml:0};}
+  DB.sv();renderAmbientes();
 }
 
 function setAcQtyEl(el){
@@ -4138,10 +4320,95 @@ function orcDel(id, e) {
 }
 
 // ═══ GERAR CONTRATO ═══
+var _contrId=null;
 function gerarContrato(id, e){
   if(e)e.stopPropagation();
   var q=DB.q.find(function(x){return x.id==id;});
   if(!q){toast('Orçamento não encontrado');return;}
+  // Open config modal first
+  _contrId=id;
+  document.getElementById('contrObs').value=q.obs||'';
+  showMd('contrMd');
+}
+
+function selContrPg(tipo){
+  document.querySelectorAll('.contr-pg-btn').forEach(function(b){b.classList.remove('on');});
+  document.querySelector('[data-pg="'+tipo+'"]').classList.add('on');
+  var custom=document.getElementById('contrPgCustom');
+  if(tipo==='personalizado'){custom.style.display='flex';}
+  else{custom.style.display='none';}
+}
+
+function confirmarContrato(){
+  var id=_contrId;
+  closeAll();
+  var q=DB.q.find(function(x){return x.id==id;});
+  if(!q){toast('Orçamento não encontrado');return;}
+
+  // Get payment config
+  var pgBtn=document.querySelector('.contr-pg-btn.on');
+  var pgTipo=pgBtn?pgBtn.dataset.pg:'50_50';
+  var parc=+document.getElementById('contrParc').value||0;
+  var taxa=+document.getElementById('contrTaxa').value||12;
+  var prazo=+document.getElementById('contrPrazo').value||15;
+  var valid=+document.getElementById('contrValid').value||7;
+  var obsContr=document.getElementById('contrObs').value.trim();
+  var regFin=document.getElementById('contrFinChk').classList.contains('on');
+
+  // Build payment terms
+  var vista=q.vista||0;
+  var pgConds=[];
+  var entPct=50,entgPct=50;
+  if(pgTipo==='50_50'){entPct=50;entgPct=50;}
+  else if(pgTipo==='vista'){entPct=100;entgPct=0;}
+  else if(pgTipo==='30_70'){entPct=30;entgPct=70;}
+  else if(pgTipo==='personalizado'){
+    entPct=+document.getElementById('contrEntPct').value||50;
+    entgPct=+document.getElementById('contrEntgPct').value||50;
+  }
+  var entVal=vista*(entPct/100);
+  var entgVal=vista*(entgPct/100);
+  if(entPct>0)pgConds.push({icon:'💰',txt:'<strong>Entrada ('+entPct+'%):</strong> R$ '+fm(entVal)+' no ato da assinatura'});
+  if(entgPct>0)pgConds.push({icon:'💰',txt:'<strong>Entrega ('+entgPct+'%):</strong> R$ '+fm(entgVal)+' na entrega e instalação'});
+  if(parc>0){
+    var parcVal=vista*(1+taxa/100)/parc;
+    pgConds.push({icon:'💳',txt:'Parcelado em '+parc+'× de R$ '+fm(parcVal)+' (taxa '+taxa+'%)'});
+  }
+  pgConds.push({icon:'📅',txt:'Orçamento válido por '+valid+' dias a partir desta data'});
+  if(obsContr)pgConds.push({icon:'📝',txt:obsContr});
+
+  // Register in Finanças
+  if(regFin && entVal > 0){
+    if(!DB.j)DB.j=[];
+    var finEntry={
+      id:Date.now(),
+      tipo:'r',
+      desc:'Entrada contrato — '+escH(q.cli||'Cliente')+' ('+q.tipo+')',
+      val:entVal,
+      dt:new Date().toISOString().slice(0,10),
+      status:'pendente',
+      qid:q.id
+    };
+    DB.j.push(finEntry);
+    // Also register full value as pending receivable
+    DB.j.push({
+      id:Date.now()+1,
+      tipo:'r',
+      desc:'Entrega — '+escH(q.cli||'Cliente')+' ('+q.tipo+')',
+      val:entgVal,
+      dt:new Date().toISOString().slice(0,10),
+      status:'pendente',
+      qid:q.id
+    });
+    DB.sv();
+    toast('✓ Lançado nas Finanças: entrada R$ '+fm(entVal)+' pendente');
+  }
+
+  // Generate contract with custom payment terms
+  _gerarContratoHtml(q, pgConds, prazo, valid, parc, taxa);
+}
+
+function _gerarContratoHtml(q, pgConds, prazo, valid, parc, taxa){
   var emp=CFG.emp;
   var hoje=new Date();
   var dataStr=hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
@@ -4312,7 +4579,7 @@ function gerarContrato(id, e){
   +'<div class="guarantee">'
     +'<div class="guarantee-title">✅ Garantia de '+garantiaMeses+' meses</div>'
     +'<div class="guarantee-text">'
-      +'A <strong>'+emp.nome+'</strong> oferece garantia de <strong>'+garantiaMeses+' ('+_numPorExtenso(garantiaMeses)+') meses</strong> contra defeitos de fabricação e instalação, a contar da data de entrega.<br><br>'
+      +'O prazo de entrega é de <strong>'+prazo+' dias úteis</strong> após o pagamento da entrada. A <strong>'+emp.nome+'</strong> oferece garantia de <strong>'+garantiaMeses+' ('+_numPorExtenso(garantiaMeses)+') meses</strong> contra defeitos de fabricação e instalação.<br><br>'
       +'<strong>Coberto:</strong> Trincas por má execução, falhas no acabamento, problemas de instalação causados pela contratada.<br><br>'
       +'<strong>Não coberto:</strong> Danos por mau uso, impactos físicos, produtos químicos inadequados, infiltrações ou problemas estruturais do imóvel.'
     +'</div>'
