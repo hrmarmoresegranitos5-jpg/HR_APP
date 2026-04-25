@@ -24,15 +24,21 @@ html{height:100%;height:-webkit-fill-available;}body{height:100%;height:-webkit-
 
 
 /* Tablet orçamento improvements */
+.svblk{display:block;}
 @media(min-width:700px){
   .pecaRow{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;align-items:end;}
-  .svblk{columns:2;column-gap:12px;}
-  .svblk .svcgrp{break-inside:avoid;}
+  .svblk{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+  .svblk .svcgrp{}
   .cfgsec{max-width:680px;margin:0 auto 12px;}
   .qcard{max-width:100%;}
+  /* Fix service fields in tablet */
+  .sfw{padding:10px 14px 13px;}
+  .sfr{flex-wrap:nowrap;gap:8px;}
+  .sfr .sf input{width:80px;min-width:60px;}
+  .svrow{padding:12px 14px;}
 }
 @media(min-width:900px){
-  .svblk{columns:2;column-gap:16px;}
+  .svblk{display:grid;grid-template-columns:1fr 1fr;gap:0;}
   .cfg-row{max-width:680px;}
 }
 /* ══ INTRO SCREEN ══ */
@@ -229,12 +235,12 @@ textarea{resize:none;}
 .mt{margin-top:9px;}.mt6{margin-top:6px;}
 
 /* MATERIAL */
-.mcat{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:14px 0 7px;display:flex;align-items:center;gap:5px;}
+.mcat{font-size:.6rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:16px 0 8px;display:flex;align-items:center;gap:6px;padding-bottom:4px;border-bottom:1px solid rgba(201,168,76,.15);}
 .mscroll{display:flex;gap:9px;overflow-x:auto;margin:0 -17px;padding:0 17px 4px;scrollbar-width:none;}
 .mscroll::-webkit-scrollbar{display:none;}
-.mc{width:110px;flex-shrink:0;background:var(--s2);border:2px solid var(--bd);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;transition:border-color .15s;}
+.mc{width:115px;flex-shrink:0;background:var(--s2);border:1.5px solid var(--bd);border-radius:13px;overflow:hidden;cursor:pointer;position:relative;transition:all .15s;}
 .mc:active{transform:scale(.97);}
-.mc.on{border-color:var(--gold);}
+.mc.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.2);}
 .mc.on::before{content:"✓";position:absolute;top:5px;right:5px;background:var(--gold);color:#000;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:.58rem;font-weight:900;z-index:2;}
 .msw{height:70px;position:relative;overflow:hidden;}
 .msw img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -265,24 +271,24 @@ textarea{resize:none;}
 /* SERVIÇOS */
 .svblk{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:7px;overflow:hidden;}
 .svhd{background:var(--s3);padding:8px 13px;font-size:.57rem;letter-spacing:2px;text-transform:uppercase;color:var(--t3);font-weight:600;border-bottom:1px solid var(--bd);}
-.svrow{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid #0d0d10;cursor:pointer;}
+.svrow{display:flex;align-items:center;gap:10px;padding:12px 13px;border-bottom:1px solid #0d0d10;cursor:pointer;transition:background .12s;}
 .svrow:last-of-type{border-bottom:none;}
 .svrow.on{background:linear-gradient(90deg,#130c00,#0d0800);}
-.svchk{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--s5);flex-shrink:0;display:grid;place-items:center;font-size:.6rem;font-weight:900;color:transparent;}
+.svchk{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--bd2);flex-shrink:0;display:grid;place-items:center;font-size:.65rem;font-weight:900;color:transparent;transition:all .15s;}
 .svrow.on .svchk{background:var(--gold);border-color:var(--gold);color:#000;}
-.svlbl{font-size:.81rem;color:var(--t2);flex:1;}
+.svlbl{font-size:.82rem;color:var(--tx);flex:1;line-height:1.3;}
 .svrow.on .svlbl{color:var(--gold2);}
 .svph{font-size:.6rem;color:var(--t4);display:block;margin-top:1px;}
 /* Sainha/Frontão */
-.sfw{padding:8px 13px 11px;background:#0b0800;border-bottom:1px solid #0d0d10;display:none;}
+.sfw{padding:9px 13px 12px;background:#0b0800;border-bottom:1px solid #0d0d10;display:none;overflow:hidden;}
 .sfw.on{display:block;}
-.sfl{font-size:.58rem;color:var(--gold);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
-.sfr{display:flex;gap:6px;align-items:flex-end;}
+.sfl{font-size:.56rem;color:var(--gold3);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:7px;}
+.sfr{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;}
 .sfr .sf{display:flex;flex-direction:column;gap:2px;}
-.sfr .sf span{font-size:.53rem;color:var(--t3);}
+.sfr .sf span{font-size:.53rem;color:var(--t3);white-space:nowrap;}
 .sfr .sf input{background:var(--s3);border:1px solid var(--bd2);border-radius:7px;color:var(--tx);padding:7px 8px;font-size:.78rem;outline:none;font-family:Outfit,sans-serif;width:85px;}
 .sfx{font-size:.62rem;color:var(--t3);padding-bottom:7px;}
-.sfres{margin-top:6px;font-size:.68rem;color:var(--grn);font-weight:600;min-height:12px;}
+.sfres{margin-top:7px;font-size:.7rem;color:var(--grn);font-weight:700;min-height:14px;}
 /* Extras */
 .svxtr{display:none;padding:6px 13px 10px 42px;background:#08070a;border-bottom:1px solid #0d0d10;}
 .svxtr.on{display:flex;align-items:center;gap:8px;}
@@ -325,7 +331,7 @@ textarea{resize:none;}
 .ct{flex:1;padding:9px;text-align:center;background:var(--s2);border:1px solid var(--bd);border-radius:9px;font-size:.74rem;color:var(--t3);font-weight:600;cursor:pointer;}
 .ct.on{background:var(--gdim);border-color:var(--gold3);color:var(--gold2);}
 #cubaListWrap{padding:8px 17px;}
-.cubacard{background:var(--s1);border:1px solid var(--bd);border-radius:13px;overflow:hidden;}
+.cubacard{background:var(--s1);border:1px solid var(--bd);border-radius:14px;overflow:hidden;transition:transform .12s;}
 .ccimg{width:100%;height:160px;background:var(--s3);display:grid;place-items:center;overflow:hidden;}
 .ccimg img{width:100%;height:100%;object-fit:contain;}
 .ccbody{padding:11px 13px;}
@@ -591,7 +597,7 @@ textarea{resize:none;}
 .cuba-tabs{display:flex;gap:7px;padding:11px 17px 0;}
 .ct{flex:1;padding:9px;text-align:center;background:var(--s2);border:1px solid var(--bd);border-radius:9px;font-size:.74rem;color:var(--t3);font-weight:600;cursor:pointer;touch-action:manipulation;}
 .ct.on{background:var(--gdim);border-color:var(--gold3);color:var(--gold2);}
-.cubacard{background:var(--s1);border:1px solid var(--bd);border-radius:13px;overflow:hidden;}
+.cubacard{background:var(--s1);border:1px solid var(--bd);border-radius:14px;overflow:hidden;transition:transform .12s;}
 .ccimg{width:100%;height:160px;background:var(--s3);display:grid;place-items:center;overflow:hidden;}
 .ccimg img{width:100%;height:100%;object-fit:contain;}
 .ccbody{padding:11px 13px;}
