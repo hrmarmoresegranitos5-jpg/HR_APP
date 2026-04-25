@@ -1809,6 +1809,7 @@ function updPc(id,prop,val){ambientes.forEach(function(a){var p=a.pecas.find(fun
 function remPeca(id){ambientes.forEach(function(a){if(a.pecas.length>1){a.pecas=a.pecas.filter(function(p){return p.id!==id;});}});renderAmbientes();}
 
 function renderAmbientes(){
+  try{
   var container=document.getElementById('ambientesList');
   if(!container)return;
   var h='';
@@ -1853,6 +1854,7 @@ function renderAmbientes(){
     h+='</div></div>';
   });
   container.innerHTML=h;
+  }catch(e2){console.error('renderAmbientes:',e2);toast('Erro: '+e2.message);}
 }
 
 function buildSVHtml(amb){
@@ -2093,8 +2095,8 @@ function calcular(){
 
   var pedT=totalM2*mat.pr;
   var bruto=pedT+totalAcT;
-  var vista=Math.ceil(bruto/10)*10;
-  var parc=Math.ceil(vista*1.12/10)*10;
+  var vista=bruto;
+  var parc=vista*1.12;
   var p8=parc/8,ent=vista/2;
 
   detHtml+='<div style="border-top:1px solid var(--bd);margin:10px 0 6px;"></div>';
@@ -3585,7 +3587,7 @@ function buildOrcList(list) {
     h += '<button class="btn btn-g" onclick="orcEditar(\''+q.id+'\',event)">✏️ Editar</button>';
     h += '<button class="btn btn-o" onclick="orcCopiar(\''+q.id+'\',event)">📋 Copiar</button>';
     h += '<button class="btn btn-o" onclick="orcPDF(\''+q.id+'\',event)">📄 PDF</button>';
-    h += '<button class="btn btn-contrato" onclick="gerarContrato(\''+q.id+'\',event)">📜 Contrato</button>';
+    h += '<button class="btn btn-contrato" data-cid="'+q.id+'" onclick="gerarContrId(this,event)">📜 Contrato</button>';
     h += '<button class="btn btn-red" onclick="orcDel(\''+q.id+'\',event)">🗑</button>';
     h += '</div>';
     h += '</div>'; // qcard-body
@@ -3695,31 +3697,40 @@ function orcDel(id, e) {
 
 // ═══ GERAR CONTRATO ═══
 var _contrId=null;
+function gerarContrBtn(id,e){if(e)e.stopPropagation();gerarContrato(+id||id,e);}
+function gerarContrId(el,e){if(e)e.stopPropagation();var id=+el.dataset.cid;gerarContrato(id,e);}
 function gerarContrato(id, e){
-  if(e)e.stopPropagation();
-  var q=DB.q.find(function(x){return x.id==id;});
-  if(!q){toast('Orçamento não encontrado');return;}
-  _contrId=id;
-  document.getElementById('contrObs').value=q.obs||'';
-  // Suggest start date: next business day after last agenda job
-  var hoje=new Date();
-  var startDt=new Date(hoje);
-  if(DB.j&&DB.j.length){
-    var jobs=DB.j.filter(function(j){return j.dt;});
-    jobs.sort(function(a,b){return (b.dt||'').localeCompare(a.dt||'');});
-    if(jobs.length&&jobs[0].dt){
-      var ld=new Date(jobs[0].dt+'T12:00:00');
-      if(ld>hoje)startDt=new Date(ld);
-    }
+  try{
+    if(e)e.stopPropagation();
+    var q=DB.q.find(function(x){return x.id==id;});
+    if(!q){toast('Orçamento não encontrado');return;}
+    _contrId=id;
+    var obsEl=document.getElementById('contrObs');
+    if(obsEl)obsEl.value=q.obs||'';
+    try{
+      var hoje=new Date();
+      var startDt=new Date(hoje);
+      if(DB.j&&DB.j.length){
+        var jobs=DB.j.filter(function(j){return j.dt;});
+        jobs.sort(function(a,b){return (b.dt||'').localeCompare(a.dt||'');});
+        if(jobs.length&&jobs[0].dt){
+          var ld=new Date(jobs[0].dt+'T12:00:00');
+          if(ld>hoje)startDt=new Date(ld);
+        }
+      }
+      startDt.setDate(startDt.getDate()+1);
+      while(startDt.getDay()===0||startDt.getDay()===6)startDt.setDate(startDt.getDate()+1);
+      var el=document.getElementById('contrDataInicio');
+      if(el)el.value=startDt.toISOString().slice(0,10);
+      var agInfo=document.getElementById('contrAgendaInfo');
+      if(agInfo){agInfo.style.display='block';agInfo.textContent='📅 Início sugerido: '+startDt.toLocaleDateString('pt-BR');}
+      setTimeout(contrCalcEntrega,100);
+    }catch(dateErr){console.warn('date err:',dateErr);}
+    showMd('contrMd');
+  }catch(err){
+    console.error('gerarContrato error:',err);
+    toast('Erro ao abrir contrato: '+err.message);
   }
-  startDt.setDate(startDt.getDate()+1);
-  while(startDt.getDay()===0||startDt.getDay()===6)startDt.setDate(startDt.getDate()+1);
-  var startStr=startDt.toISOString().slice(0,10);
-  document.getElementById('contrDataInicio').value=startStr;
-  var agInfo=document.getElementById('contrAgendaInfo');
-  if(agInfo){agInfo.style.display='block';agInfo.textContent='📅 Início sugerido: '+startDt.toLocaleDateString('pt-BR')+' (próximo dia útil disponível)';}
-  setTimeout(contrCalcEntrega,100);
-  showMd('contrMd');
 }
 
 function selContrPg(tipo){
@@ -3741,6 +3752,7 @@ function contrCalcEntrega(){
 }
 
 function confirmarContrato(){
+  try{
   var id=_contrId;closeAll();
   var q=DB.q.find(function(x){return x.id==id;});
   if(!q){toast('Orçamento não encontrado');return;}
@@ -3777,6 +3789,7 @@ function confirmarContrato(){
     DB.sv();toast('✓ Lançado nas Finanças: R$ '+fm(entVal)+' pendente');
   }
   _gerarContratoHtml(q,pgConds,prazo,valid,parc,taxa);
+  }catch(err){console.error('confirmarContrato:',err);toast('Erro: '+err.message);}
 }
 
 function _gerarContratoHtml(q,pgConds,prazo,valid,parc,taxa){
