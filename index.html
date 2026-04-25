@@ -1125,6 +1125,10 @@ function initCFG(){
   var _pr={andorinha:320,verde_ub:340,verde_perla:340,bege:380,p_indiano:450,p_gabriel:500,p_gabriel_e:540,via_lactea:750,dallas:400,itaunas:510,nepal:540,prime:730,mrm_branco:300,siena:580,siena_e:620,parana:1490,nano:930,super_nano:980,perla:1640,carrara:1640,trav_classic:400,trav_noce:440};
   CFG.stones.forEach(function(s){if(_pr[s.id])s.pr=_pr[s.id];});
   syncSVDefsFromList();
+  // Apply saved app icon if exists
+  if(CFG.emp && CFG.emp.appIconUrl){
+    setTimeout(function(){atualizarIconeApp(CFG.emp.logoUrl||CFG.emp.appIconUrl);},500);
+  }
   // Apply photos from CUBA_IMGS for any cuba without a custom photo
   CFG.coz.forEach(function(c){if(!c.photo&&CUBA_IMGS[c.id])c.photo=CUBA_IMGS[c.id];});
   CFG.lav.forEach(function(c){if(!c.photo&&CUBA_IMGS[c.id])c.photo=CUBA_IMGS[c.id];});
@@ -2973,6 +2977,57 @@ function compartilharCatalogoCubas(){
 }
 
 // ═══ EMPRESA ═══
+function atualizarIconeApp(imgDataUrl){
+  // Rebuild PWA manifest icon with the new image
+  try {
+    var canvas = document.createElement('canvas');
+    canvas.width = 192; canvas.height = 192;
+    var ctx = canvas.getContext('2d');
+    // Dark background circle
+    ctx.fillStyle = '#0d0800';
+    ctx.beginPath(); ctx.arc(96,96,96,0,Math.PI*2); ctx.fill();
+    // Load and draw image circular
+    var img = new window.Image();
+    img.onload = function(){
+      ctx.save();
+      ctx.beginPath(); ctx.arc(96,96,88,0,Math.PI*2); ctx.clip();
+      ctx.drawImage(img, 8, 8, 176, 176);
+      ctx.restore();
+      // Gold ring
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.arc(96,96,88,0,Math.PI*2); ctx.stroke();
+      var icon192 = canvas.toDataURL('image/png');
+      // Rebuild manifest with new icon
+      var m = {
+        name:'HR Mármores e Granitos', short_name:'HR Mármores',
+        start_url:'./', display:'standalone', orientation:'any',
+        background_color:'#0d0800', theme_color:'#0d0800',
+        icons:[
+          {src:icon192, sizes:'192x192', type:'image/png', purpose:'any maskable'},
+          {src:icon192, sizes:'512x512', type:'image/png', purpose:'any maskable'}
+        ]
+      };
+      var blob = new Blob([JSON.stringify(m)], {type:'application/json'});
+      var url = URL.createObjectURL(blob);
+      // Remove old manifest link and add new
+      var old = document.querySelector('link[rel="manifest"]');
+      if(old) old.remove();
+      var link = document.createElement('link');
+      link.rel='manifest'; link.href=url;
+      document.head.appendChild(link);
+      // Update apple-touch-icon
+      var ati = document.querySelector('link[rel="apple-touch-icon"]');
+      if(ati) ati.href = icon192;
+      // Save icon to CFG for persistence
+      CFG.emp.appIconUrl = icon192;
+      svCFG();
+      toast('✓ Ícone do app atualizado! Reinstale o app para ver o novo ícone.');
+    };
+    img.src = imgDataUrl;
+  } catch(e) { console.log('icon update error', e); }
+}
+
 function updEmp(){
   var e=CFG.emp;
   // Header
@@ -3208,7 +3263,8 @@ function buildCfg(){
     h+='<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:4px;">Logo da empresa</div>';
     h+='<div style="font-size:.65rem;color:var(--t3);line-height:1.5;margin-bottom:8px;">Aparece na tela inicial e nos documentos. Toque na logo para alterar.</div>';
     h+='<button onclick="document.getElementById(\'fileLogoInp\').click()" style="background:var(--gdim);border:1px solid var(--gold3);border-radius:8px;padding:6px 12px;color:var(--gold2);font-family:Outfit,sans-serif;font-size:.7rem;cursor:pointer;">📷 Alterar Logo</button>';
-    h+='<input type="file" id="fileLogoInp" accept="image/*" style="display:none;" onchange="var r=new FileReader();r.onload=function(e2){CFG.emp.logoUrl=e2.target.result;svCFG();updEmp();buildCfg();};r.readAsDataURL(this.files[0]);">';
+      h+='<div style="font-size:.62rem;color:var(--t3);margin-top:5px;">A mesma imagem será usada como ícone do app</div>';
+    h+='<input type="file" id="fileLogoInp" accept="image/*" style="display:none;" onchange="var r=new FileReader();r.onload=function(e2){CFG.emp.logoUrl=e2.target.result;svCFG();updEmp();buildCfg();atualizarIconeApp(e2.target.result);};r.readAsDataURL(this.files[0]);">';
     if(e.logoUrl)h+=' <button onclick="delete CFG.emp.logoUrl;svCFG();updEmp();buildCfg();" style="background:var(--s3);border:1px solid var(--bd2);border-radius:8px;padding:6px 10px;color:var(--t3);font-family:Outfit,sans-serif;font-size:.7rem;cursor:pointer;margin-left:4px;">✕ Remover</button>';
     h+='</div></div>';
 
