@@ -1803,71 +1803,6 @@ function updPcAmb(ambId,pcId,prop,val){
   if(pc)pc[prop]=val;
 }
 
-var ACAB_OPCOES=[
-  {k:'sem',l:'Sem sainha'},
-  {k:'s_reta',l:'Reta'},
-  {k:'s_45',l:'45°'},
-  {k:'s_boleada',l:'Boleada'},
-  {k:'s_slim',l:'Slim'}
-];
-
-function togglePcAcab(ambId,pcId,prop,val){
-  var amb=ambientes.find(function(a){return a.id==ambId;});
-  if(!amb)return;
-  var pc=amb.pecas.find(function(p){return p.id===pcId;});
-  if(!pc)return;
-  if(prop!=='_noop')pc[prop]=val;
-  var el=document.getElementById('acab-'+pcId);
-  if(el)el.outerHTML=buildPcAcabHtml(pc,ambId);
-}
-
-function buildPcAcabHtml(pc,ambId){
-  var sainha=pc.sainha||'sem';
-  var frontao=pc.frontao||false;
-  var hFront=pc.hFront||10;
-  var hSainha=pc.hSainha||6;
-  var furos=pc.furos||[];
-  var h='<div id="acab-'+pc.id+'" style="margin-top:8px;background:var(--s3);border-radius:10px;padding:10px 11px;">';
-  h+='<div style="font-size:.52rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold3);font-weight:600;margin-bottom:8px;">Acabamentos desta peça</div>';
-  // Sainha
-  h+='<div style="margin-bottom:7px;"><div style="font-size:.6rem;color:var(--t3);margin-bottom:4px;">Sainha</div>';
-  h+='<div style="display:flex;gap:5px;flex-wrap:wrap;">';
-  ACAB_OPCOES.forEach(function(op){
-    var on=sainha===op.k;
-    h+='<button onclick="togglePcAcab('+ambId+','+pc.id+',\'sainha\',\''+op.k+'\')" style="padding:4px 10px;border-radius:16px;background:'+(on?'var(--gdim)':'var(--s4)')+';border:1px solid '+(on?'var(--gold3)':'var(--bd2)')+';color:'+(on?'var(--gold2)':'var(--t3)')+';font-family:Outfit,sans-serif;font-size:.67rem;cursor:pointer;">'+op.l+'</button>';
-  });
-  h+='</div>';
-  if(sainha!=='sem'){
-    h+='<div style="display:flex;align-items:center;gap:8px;margin-top:5px;">';
-    h+='<span style="font-size:.62rem;color:var(--t3);">Altura (cm):</span>';
-    h+='<input type="number" value="'+hSainha+'" min="1" max="30" step="0.5" style="width:65px;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:6px 8px;color:var(--tx);font-family:Outfit,sans-serif;font-size:.82rem;outline:none;" oninput="updPcAmb('+ambId+','+pc.id+',\'hSainha\',+this.value)">';
-    h+='</div>';
-  }
-  h+='</div>';
-  // Frontão
-  h+='<div style="margin-bottom:7px;"><div style="display:flex;align-items:center;gap:8px;">';
-  var fOn=frontao?'var(--gdim)':'var(--s4)';
-  var fBd=frontao?'var(--gold3)':'var(--bd2)';
-  var fCl=frontao?'var(--gold2)':'var(--t3)';
-  h+='<button onclick="togglePcAcab('+ambId+','+pc.id+',\'frontao\','+(frontao?'false':'true')+')" style="padding:4px 10px;border-radius:16px;background:'+fOn+';border:1px solid '+fBd+';color:'+fCl+';font-family:Outfit,sans-serif;font-size:.67rem;cursor:pointer;">Frontão</button>';
-  if(frontao){
-    h+='<span style="font-size:.62rem;color:var(--t3);">Altura (cm):</span>';
-    h+='<input type="number" value="'+hFront+'" min="1" max="60" step="1" style="width:65px;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:6px 8px;color:var(--tx);font-family:Outfit,sans-serif;font-size:.82rem;outline:none;" oninput="updPcAmb('+ambId+','+pc.id+',\'hFront\',+this.value)">';
-  }
-  h+='</div></div>';
-  // Furos
-  var furosOps=[{k:'forn',l:'Furo torneira'},{k:'fralo',l:'Furo ralo'},{k:'cook',l:'Recorte cooktop'}];
-  h+='<div><div style="font-size:.6rem;color:var(--t3);margin-bottom:4px;">Furos / Recortes</div>';
-  h+='<div style="display:flex;gap:5px;flex-wrap:wrap;">';
-  furosOps.forEach(function(f){
-    var on=furos.indexOf(f.k)>=0;
-    h+='<button onclick="(function(){var a=ambientes.find(function(x){return x.id=='+ambId+';});if(!a)return;var p=a.pecas.find(function(x){return x.id==='+pc.id+';});if(!p)return;if(!p.furos)p.furos=[];var i=p.furos.indexOf(\''+f.k+'\');if(i>=0)p.furos.splice(i,1);else p.furos.push(\''+f.k+'\');togglePcAcab('+ambId+','+pc.id+',\'_noop\',0);})()" style="padding:4px 10px;border-radius:16px;background:'+(on?'var(--gdim)':'var(--s4)')+';border:1px solid '+(on?'var(--gold3)':'var(--bd2)')+';color:'+(on?'var(--gold2)':'var(--t3)')+';font-family:Outfit,sans-serif;font-size:.67rem;cursor:pointer;">'+f.l+'</button>';
-  });
-  h+='</div></div>';
-  h+='</div>';
-  return h;
-}
-
 // Legacy - kept for AI apply compatibility
 function addPeca(){if(ambientes.length>0)addPecaAmb(ambientes[0].id);}
 function updPc(id,prop,val){ambientes.forEach(function(a){var p=a.pecas.find(function(x){return x.id===id;});if(p)p[prop]=val;});}
@@ -1905,7 +1840,6 @@ function renderAmbientes(){
       h+='<div class="r2"><div class="f"><label>Comprimento (cm)</label><input id="pw-'+pc.id+'" placeholder="300" type="number" style="background:var(--s3);" value="'+(pc.w||'')+'" oninput="updPcAmb('+amb.id+','+pc.id+',\'w\',+this.value)"></div>';
       h+='<div class="f"><label>Largura (cm)</label><input id="ph-'+pc.id+'" placeholder="60" type="number" style="background:var(--s3);" value="'+(pc.h||'')+'" oninput="updPcAmb('+amb.id+','+pc.id+',\'h\',+this.value)"></div></div>';
       h+='<div style="max-width:130px;"><div class="f"><label>Quantidade</label><input id="pq-'+pc.id+'" type="number" style="background:var(--s3);" value="'+(pc.q||1)+'" oninput="updPcAmb('+amb.id+','+pc.id+',\'q\',+this.value||1)"></div></div>';
-      h+=buildPcAcabHtml(pc,amb.id);
       h+='</div>';
     });
     h+='</div>';
@@ -2091,34 +2025,6 @@ function calcular(){
         m2+=a;
         pds.push({desc:p.desc||'Peça',w:p.w,h:p.h,q:p.q||1,m2:a});
         allPds.push({desc:(tipo+': '+(p.desc||'Peça')),w:p.w,h:p.h,q:p.q||1,m2:a});
-        // Sainha por peça
-        if(p.sainha&&p.sainha!=='sem'&&p.hSainha){
-          var pml=p.w/100,palt=p.hSainha,pq=p.q||1;
-          var psfM2=pml*(palt/100)*pq; m2+=psfM2;
-          var pMo=pml*pq*(CFG.sv[p.sainha]||0);acT+=pMo;
-          var sNm=({s_reta:'Reta',s_45:'45°',s_boleada:'Boleada',s_slim:'Slim'})[p.sainha]||p.sainha;
-          acL.push({l:'Sainha '+sNm+' — '+(p.desc||'peça')+' '+pml.toFixed(2)+'ml×'+palt+'cm',v:pMo});
-          sfPcs.push({l:'Sainha '+sNm+' ('+(p.desc||'peça')+')',w:pml,h:palt,q:pq,m2:psfM2,mo:pMo});
-          acN.push('Sainha '+sNm+' — '+(p.desc||'peça'));
-        }
-        // Frontão por peça
-        if(p.frontao&&p.hFront){
-          var fml=p.w/100,falt=p.hFront,fq=p.q||1;
-          var fm2=fml*(falt/100)*fq; m2+=fm2;
-          var fMo=fml*fq*(CFG.sv.frontao||0);acT+=fMo;
-          acL.push({l:'Frontão — '+(p.desc||'peça')+' '+fml.toFixed(2)+'ml×'+falt+'cm',v:fMo});
-          sfPcs.push({l:'Frontão ('+(p.desc||'peça')+')',w:fml,h:falt,q:fq,m2:fm2,mo:fMo});
-          acN.push('Frontão — '+(p.desc||'peça'));
-        }
-        // Furos por peça
-        if(p.furos&&p.furos.length){
-          var fNames={forn:'Furo torneira',fralo:'Furo ralo',cook:'Recorte cooktop'};
-          p.furos.forEach(function(fk){
-            var fpr=(CFG.sv[fk]||0)*(p.q||1);acT+=fpr;
-            acL.push({l:(fNames[fk]||fk)+' — '+(p.desc||'peça'),v:fpr});
-            acN.push(fNames[fk]||fk);
-          });
-        }
       }
     });
 
@@ -2776,43 +2682,15 @@ function renderFin(){
   var inT=DB.t.filter(function(t){return t.type==='in';}).reduce(function(s,t){return s+t.value;},0);
   var outT=DB.t.filter(function(t){return t.type==='out';}).reduce(function(s,t){return s+t.value;},0);
   var bal=inT-outT;
-  var pendVal=DB.t.filter(function(t){return t.type==='pend';}).reduce(function(s,t){return s+(t.value||0);},0);
-  var pendJob=DB.j.filter(function(j){return !j.done;}).reduce(function(s,j){return s+(j.value-(j.pago||0));},0);
-  var pend=pendVal+pendJob;
+  var pend=DB.j.filter(function(j){return !j.done;}).reduce(function(s,j){return s+(j.value-(j.pago||0));},0);
   var fs=document.getElementById('finSaldo');
   fs.textContent='R$ '+fm(bal);fs.className='finval '+(bal>=0?'pos':'neg');
-  document.getElementById('finSub').textContent='R$ '+fm(pend)+' a receber';
+  document.getElementById('finSub').textContent='R$ '+fm(pend)+' a receber dos serviços';
   document.getElementById('finCards').innerHTML='<div class="fc"><div class="fcl">Entradas</div><div class="fcv g">R$ '+fm(inT)+'</div></div><div class="fc"><div class="fcl">Saídas</div><div class="fcv r">R$ '+fm(outT)+'</div></div><div class="fc"><div class="fcl">A Receber</div><div class="fcv b">R$ '+fm(pend)+'</div></div>';
   var items=DB.t.slice(0,50),h='';
-  if(items.length){
-    items.forEach(function(t){
-      var ic=t.type==='in'?'📈':t.type==='out'?'📉':t.type==='note'?'📝':'⏳';
-      var sign=t.type==='in'?'+':t.type==='out'?'-':'';
-      var valStr=t.value?'R$ '+fm(t.value):'';
-      h+='<div class="trrow"><div class="trdot '+t.type+'">'+ic+'</div>';
-      h+='<div style="flex:1;min-width:0;"><div class="trnm">'+t.desc+'</div>';
-      h+='<div class="trdt">'+(t.date?fd(t.date):'')+'</div>';
-      if(t.type==='pend'){
-        h+='<button onclick="confirmarRecebimento('+t.id+')" style="margin-top:4px;padding:3px 10px;background:#0a1a10;border:1px solid var(--grn);border-radius:7px;color:var(--grn);font-family:Outfit,sans-serif;font-size:.6rem;cursor:pointer;font-weight:600;">✓ Confirmar recebimento</button>';
-      }
-      h+='</div>';
-      h+='<div class="trv '+t.type+'">'+sign+valStr+'</div>';
-      h+='<button class="tredt" data-edittr="'+t.id+'">✏️</button></div>';
-    });
-  } else {
-    h='<div style="padding:18px;text-align:center;color:var(--t3);font-size:.8rem;">Nenhuma movimentação</div>';
-  }
+  if(items.length){items.forEach(function(t){var ic=t.type==='in'?'📈':t.type==='out'?'📉':t.type==='note'?'📝':'⏳';var sign=t.type==='in'?'+':t.type==='out'?'-':'';var valStr=t.value?'R$ '+fm(t.value):'';h+='<div class="trrow"><div class="trdot '+t.type+'">'+ic+'</div><div style="flex:1;min-width:0;"><div class="trnm">'+t.desc+'</div><div class="trdt">'+(t.date?fd(t.date):'')+'</div></div><div class="trv '+t.type+'">'+sign+valStr+'</div><button class="tredt" data-edittr="'+t.id+'">✏️</button></div>';});}
+  else{h='<div style="padding:18px;text-align:center;color:var(--t3);font-size:.8rem;">Nenhuma movimentação</div>';}
   document.getElementById('trList').innerHTML=h;
-}
-
-function confirmarRecebimento(id){
-  var t=DB.t.find(function(x){return x.id==id;});
-  if(!t)return;
-  t.type='in';
-  t.dateRecebido=td();
-  DB.sv();
-  renderFin();
-  toast('✓ Recebimento confirmado! Lançado como entrada.');
 }
 function renderFixos(){
   var tot=0,h='';
@@ -3904,19 +3782,20 @@ function confirmarContrato(){
   if(dataInicio){var di=new Date(dataInicio+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});pgConds.push({icon:'🔨',txt:'<strong>Início:</strong> '+di});}
   if(dataEntrega){var de=new Date(dataEntrega+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});pgConds.push({icon:'🚚',txt:'<strong>Previsão de entrega:</strong> '+de+' ('+prazo+' dias úteis)'});}
   if(obsContr)pgConds.push({icon:'📝',txt:obsContr});
-  // ── Lançar nas Finanças como A Receber (DB.t) ──
   if(regFin&&entVal>0){
-    DB.t.unshift({id:Date.now(),type:'pend',desc:'Entrada — '+escH(q.cli||'Cliente')+' ('+q.tipo+')',value:entVal,date:new Date().toISOString().slice(0,10),origem:'contrato',ref:q.id});
-    if(entgVal>0)DB.t.unshift({id:Date.now()+1,type:'pend',desc:'Entrega — '+escH(q.cli||'Cliente')+' ('+q.tipo+')',value:entgVal,date:dataEntrega||new Date().toISOString().slice(0,10),origem:'contrato',ref:q.id});
-    DB.sv();
-    renderFin();
-    toast('✓ Lançado nas Finanças como A Receber!');
+    if(!DB.j)DB.j=[];
+    DB.j.push({id:Date.now(),tipo:'r',desc:'Entrada — '+escH(q.cli||'Cliente')+' ('+q.tipo+')',val:entVal,dt:new Date().toISOString().slice(0,10),status:'pendente',qid:q.id});
+    if(entgVal>0)DB.j.push({id:Date.now()+1,tipo:'r',desc:'Entrega — '+escH(q.cli||'Cliente')+' ('+q.tipo+')',val:entgVal,dt:dataEntrega||new Date().toISOString().slice(0,10),status:'pendente',qid:q.id});
+    DB.sv();toast('✓ Lançado nas Finanças: R$ '+fm(entVal)+' pendente');
   }
   _gerarContratoHtml(q,pgConds,prazo,valid,parc,taxa);
   }catch(err){console.error('confirmarContrato:',err);toast('Erro: '+err.message);}
 }
 
 function _gerarContratoHtml(q,pgConds,prazo,valid,parc,taxa){
+  if(e)e.stopPropagation();
+  var q=DB.q.find(function(x){return x.id==id;});
+  if(!q){toast('Orçamento não encontrado');return;}
   var emp=CFG.emp;
   var hoje=new Date();
   var dataStr=hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
