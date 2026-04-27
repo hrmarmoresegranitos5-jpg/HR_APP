@@ -1,10 +1,11 @@
 {
   "name": "HR Mármores e Granitos",
   "short_name": "HR Mármores",
-  "description": "Sistema de orçamentos para marmoraria",
-  "start_url": "/",
+  "description": "Sistema de gestão HR Mármores e Granitos",
+  "start_url": "/HR_APP/",
+  "scope": "/HR_APP/",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "background_color": "#070709",
   "theme_color": "#C9A84C",
   "lang": "pt-BR",
@@ -21,6 +22,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "scope": "/"
+  ]
 }
