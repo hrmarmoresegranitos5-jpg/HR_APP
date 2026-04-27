@@ -2,11 +2,11 @@
   "name": "HR Mármores e Granitos",
   "short_name": "HR Mármores",
   "description": "Sistema de orçamentos para marmoraria",
-  "start_url": "/",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#070709",
-  "theme_color": "#C9A84C",
+  "theme_color": "#070709",
   "lang": "pt-BR",
   "icons": [
     {
@@ -21,6 +21,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "scope": "/"
+  ]
 }
